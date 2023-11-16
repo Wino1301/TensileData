@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metals Tensile Specimen</title>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+</head>
+<body>
+    <h1>Your Dataset</h1>
+    <input type="file" id="fileInput" accept=".xlsx, .xls" />
+    <div id="dataContainer"></div>
+
+    <script>
+        // Function to read Excel file and display data
+        function readExcel() {
+            var fileInput = document.getElementById('fileInput');
+
+            fileInput.addEventListener('change', function (e) {
+                var file = e.target.files[0];
+                var reader = new FileReader();
+
+                reader.onload = function (e) {
+                    var data = new Uint8Array(e.target.result);
+                    var workbook = XLSX.read(data, { type: 'array' });
+                    var sheetName = workbook.SheetNames[0];
+                    var sheet = workbook.Sheets[sheetName];
+
+                    // Convert sheet data to JSON
+                    var jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+                    // Display data in a table
+                    displayData(jsonData);
+                };
+
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        // Function to display data in a table
+        function displayData(data) {
+            var table = '<table border="1">';
+            for (var i = 0; i < data.length; i++) {
+                table += '<tr>';
+                for (var j = 0; j < data[i].length; j++) {
+                    table += '<td>' + data[i][j] + '</td>';
+                }
+                table += '</tr>';
+            }
+            table += '</table>';
+
+            document.getElementById('dataContainer').innerHTML = table;
+        }
+
+        // Call readExcel function on page load
+        window.onload = function () {
+            readExcel();
+        };
+    </script>
+</body>
+</html>
+
+</html>
