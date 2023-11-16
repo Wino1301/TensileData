@@ -12,27 +12,27 @@
     <div id="dataContainer"></div>
 
     <script>
-        // Function to read Excel file and display data
-        function readExcel(file) {
-            var reader = new FileReader();
+        // Function to fetch Excel file from GitHub and display data
+        function fetchAndDisplayExcelFile() {
+            var githubRawUrl = 'https://raw.githubusercontent.com/Wino1301/TensileData/main/Copy%20of%20Metals_Tensile.xlsx';
 
-            reader.onload = function (e) {
-                var data = new Uint8Array(e.target.result);
-                var workbook = XLSX.read(data, { type: 'array' });
+            fetch(githubRawUrl)
+                .then(response => response.arrayBuffer())
+                .then(data => {
+                    var workbook = XLSX.read(new Uint8Array(data), { type: 'array' });
 
-                // Process each sheet in the workbook
-                workbook.SheetNames.forEach(function (sheetName) {
-                    var sheet = workbook.Sheets[sheetName];
+                    // Process each sheet in the workbook
+                    workbook.SheetNames.forEach(function (sheetName) {
+                        var sheet = workbook.Sheets[sheetName];
 
-                    // Convert sheet data to JSON
-                    var jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+                        // Convert sheet data to JSON
+                        var jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
-                    // Display data in a table
-                    displayData(sheetName, jsonData);
-                });
-            };
-
-            reader.readAsArrayBuffer(file);
+                        // Display data in a table
+                        displayData(sheetName, jsonData);
+                    });
+                })
+                .catch(error => console.error('Error fetching Excel file:', error));
         }
 
         // Function to display data in a table
@@ -62,16 +62,11 @@
             document.getElementById('dataContainer').innerHTML += table;
         }
 
-        // Function to handle file input change
-        function handleFileChange(e) {
-            var file = e.target.files[0];
-            readExcel(file);
-        }
-
-        // Attach the file input change event listener
-        document.getElementById('fileInput').addEventListener('change', handleFileChange);
+        // Call fetchAndDisplayExcelFile function on page load
+        window.onload = function () {
+            fetchAndDisplayExcelFile();
+        };
     </script>
-    
-    <input type="file" id="fileInput" accept=".xlsx, .xls" />
 </body>
 </html>
+
