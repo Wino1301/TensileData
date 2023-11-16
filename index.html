@@ -8,57 +8,70 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
 </head>
 <body>
-    <h1>Your Dataset</h1>
-    <input type="file" id="fileInput" accept=".xlsx, .xls" />
+    <h1>Metals Tensile Specimen Dataset</h1>
     <div id="dataContainer"></div>
 
     <script>
         // Function to read Excel file and display data
-        function readExcel() {
-            var fileInput = document.getElementById('fileInput');
+        function readExcel(file) {
+            var reader = new FileReader();
 
-            fileInput.addEventListener('change', function (e) {
-                var file = e.target.files[0];
-                var reader = new FileReader();
+            reader.onload = function (e) {
+                var data = new Uint8Array(e.target.result);
+                var workbook = XLSX.read(data, { type: 'array' });
 
-                reader.onload = function (e) {
-                    var data = new Uint8Array(e.target.result);
-                    var workbook = XLSX.read(data, { type: 'array' });
-                    var sheetName = workbook.SheetNames[0];
+                // Process each sheet in the workbook
+                workbook.SheetNames.forEach(function (sheetName) {
                     var sheet = workbook.Sheets[sheetName];
 
                     // Convert sheet data to JSON
                     var jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
                     // Display data in a table
-                    displayData(jsonData);
-                };
+                    displayData(sheetName, jsonData);
+                });
+            };
 
-                reader.readAsArrayBuffer(file);
-            });
+            reader.readAsArrayBuffer(file);
         }
 
         // Function to display data in a table
-        function displayData(data) {
-            var table = '<table border="1">';
-            for (var i = 0; i < data.length; i++) {
+        function displayData(sheetName, data) {
+            var table = '<h2>' + sheetName + '</h2>';
+            table += '<table border="1">';
+            
+            // Display headers
+            table += '<tr>';
+            for (var i = 0; i < data[0].length; i++) {
+                table += '<th>' + data[0][i] + '</th>';
+            }
+            table += '</tr>';
+
+            // Display numerical data
+            for (var i = 1; i < data.length; i++) {
                 table += '<tr>';
                 for (var j = 0; j < data[i].length; j++) {
-                    table += '<td>' + data[i][j] + '</td>';
+                    if (typeof data[i][j] === 'number') {
+                        table += '<td>' + data[i][j] + '</td>';
+                    }
                 }
                 table += '</tr>';
             }
             table += '</table>';
 
-            document.getElementById('dataContainer').innerHTML = table;
+            document.getElementById('dataContainer').innerHTML += table;
         }
 
-        // Call readExcel function on page load
-        window.onload = function () {
-            readExcel();
-        };
-    </script>
-</body>
-</html>
+        // Function to handle file input change
+        function handleFileChange(e) {
+            var file = e.target.files[0];
+            readExcel(file);
+        }
 
+        // Attach the file input change event listener
+        document.getElementById('fileInput').addEventListener('change', handleFileChange);
+    </script>
+    
+    <input type="file" id="fileInput" accept=".xlsx, .xls" />
+</body>
 </html>
